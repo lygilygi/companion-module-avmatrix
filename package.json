@@ -1,0 +1,17 @@
+{
+  "name": "companion-module-avmatrix",
+  "version": "1.0.0",
+  "description": "Bitfocus Companion module for AV Matrix 0402U/0403U video switchers (UDP control)",
+  "main": "src/index.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/companion-module-avmatrix.git"
+  },
+  "engines": {
+    "node": ">=18 <23"
+  },
+  "dependencies": {
+    "@companion-module/base": "^1.14.1"
+  }
+}

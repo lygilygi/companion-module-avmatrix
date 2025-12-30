@@ -1,0 +1,25 @@
+{
+  "id": "avmatrix",
+  "name": "AV Matrix Video Switcher",
+  "shortname": "AV Matrix",
+  "description": "AV Matrix 0402U/0403U video switcher over UDP.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "repository": "https://github.com/your-org/companion-module-avmatrix",
+  "runtime": {
+    "type": "node",
+    "api": "nodejs",
+    "minNodeVersion": "18"
+  },
+  "manufacturer": "AV Matrix",
+  "products": [
+    "0402U",
+    "0403U"
+  ],
+  "keywords": [
+    "avmatrix",
+    "switcher",
+    "video",
+    "udp"
+  ]
+}
