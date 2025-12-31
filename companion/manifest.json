@@ -1,8 +1,8 @@
-{
+B{
   "id": "avmatrix",
   "name": "AV MATRIX Video Switcher",
   "shortname": "AV MATRIX",
-  "description": "AV MATRIX (OEM) video mixer / switcher controlled via UDP (ports 19523 / 19522).",
+  "description": "AV MATRIX video switcher",
   "version": "1.4.0",
   "license": "MIT",
   "repository": "git+https://github.com/lygilygi/companion-module-avmatrix.git",
@@ -10,7 +10,7 @@
   "maintainers": [
     {
       "name": "Pawel Lygan",
-      "email": "Lygan.tech@gmail.com"
+      "email": "lygan.tech@gmail.com"
     }
   ],
   "runtime": {
