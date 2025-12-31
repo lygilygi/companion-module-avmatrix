@@ -22,48 +22,45 @@ export function initPresets(instance: any) {
 	const purpleOn = { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) }
 	const purpleOff = { bgcolor: combineRgb(35, 0, 45), color: combineRgb(255, 255, 255) }
 
-	for (const src of VIDEO_SOURCES) {
-		const id = src.id
-		const label = src.label
+	const inputSources = VIDEO_SOURCES.filter((s) => s.id >= 1 && s.id <= 4)
 
+	for (const s of inputSources) {
 		presets.push({
 			type: 'button',
 			category: 'Inputs / PGM',
-			name: `PGM ${label}`,
-			style: { text: `PGM\n${label}`, size: 'auto', ...redOff },
-			steps: [{ down: [{ actionId: 'pgm_set', options: { source: id } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pgm_is', options: { source: id }, style: redOn }],
+			name: `PGM ${s.label}`,
+			style: { text: `PGM\n${s.label}`, size: 'auto', ...redOff },
+			steps: [{ down: [{ actionId: 'pgm_set', options: { source: s.id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pgm_is', options: { source: s.id }, style: redOn }],
 		})
 
 		presets.push({
 			type: 'button',
 			category: 'Inputs / PVW',
-			name: `PVW ${label}`,
-			style: { text: `PVW\n${label}`, size: 'auto', ...greenOff },
-			steps: [{ down: [{ actionId: 'pvw_set', options: { source: id } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pvw_is', options: { source: id }, style: greenOn }],
+			name: `PVW ${s.label}`,
+			style: { text: `PVW\n${s.label}`, size: 'auto', ...greenOff },
+			steps: [{ down: [{ actionId: 'pvw_set', options: { source: s.id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pvw_is', options: { source: s.id }, style: greenOn }],
 		})
 	}
 
 	for (const st of STILL_INPUTS) {
-		const i = st.id
-
 		presets.push({
 			type: 'button',
 			category: 'Stills / PGM',
-			name: `PGM STILL ${i}`,
-			style: { text: `PGM\nSTILL${i}`, size: 'auto', ...stillOff },
-			steps: [{ down: [{ actionId: 'still_to_pgm', options: { still: i } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pgm_still_is', options: { still: i }, style: stillOn }],
+			name: `PGM ${st.label}`,
+			style: { text: `PGM\n${st.label.toUpperCase()}`, size: 'auto', ...stillOff },
+			steps: [{ down: [{ actionId: 'still_to_pgm', options: { still: st.id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pgm_still_is', options: { still: st.id }, style: stillOn }],
 		})
 
 		presets.push({
 			type: 'button',
 			category: 'Stills / PVW',
-			name: `PVW STILL ${i}`,
-			style: { text: `PVW\nSTILL${i}`, size: 'auto', ...stillOff },
-			steps: [{ down: [{ actionId: 'still_to_pvw', options: { still: i } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pvw_still_is', options: { still: i }, style: stillOn }],
+			name: `PVW ${st.label}`,
+			style: { text: `PVW\n${st.label.toUpperCase()}`, size: 'auto', ...stillOff },
+			steps: [{ down: [{ actionId: 'still_to_pvw', options: { still: st.id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pvw_still_is', options: { still: st.id }, style: stillOn }],
 		})
 	}
 
@@ -101,15 +98,6 @@ export function initPresets(instance: any) {
 		style: { text: 'MUTE', size: 'auto', ...blueOff },
 		steps: [{ down: [{ actionId: 'audio_mute_toggle', options: {} }], up: [] }],
 		feedbacks: [{ feedbackId: 'mute_on', options: {}, style: blueOn }],
-	})
-
-	presets.push({
-		type: 'button',
-		category: 'Audio',
-		name: 'AFV',
-		style: { text: 'AFV', size: 'auto', ...blueOff },
-		steps: [{ down: [{ actionId: 'audio_afv_on', options: { state: 1 } }], up: [] }],
-		feedbacks: [{ feedbackId: 'afv_on', options: {}, style: blueOn }],
 	})
 
 	const onAirButtons = [

@@ -7,7 +7,7 @@ export const SYNC_KEEPALIVE_MS = 1000
 export const ANY_RX_OK_MS = 12000
 export const STATUS_RX_OK_MS = 6000
 export const STATUS_TICK_MS = 250
-export const MISS_TO_WARNING = 12 // 12 * 250ms = 3s
+export const MISS_TO_WARNING = 12
 
 export const VIDEO_SOURCES = [
 	{ id: 1, label: 'IN1' },
@@ -17,10 +17,12 @@ export const VIDEO_SOURCES = [
 	{ id: 5, label: 'Pattern' },
 ]
 
-export const STILL_INPUTS = Array.from({ length: 16 }, (_, i) => {
-	const n = i + 1
-	return { id: n, label: `Still ${n}` }
-})
+export const STILL_INPUTS = [
+	{ id: 1, label: 'Still 1' },
+	{ id: 2, label: 'Still 2' },
+	{ id: 3, label: 'Still 3' },
+	{ id: 4, label: 'Still 4' },
+]
 
 export const PIP_SOURCES = [
 	{ id: 0, label: 'Black' },
