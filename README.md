@@ -14,7 +14,6 @@ Companion module for AVMatrix video switchers controlled over UDP.
 
 The following devices have been tested and confirmed working:
 
-- **AVMatrix HVS0401U**
 - **AVMatrix HVS0402U**
 - **AVMatrix HVS0403U**
 
