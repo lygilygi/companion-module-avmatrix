@@ -1,13 +1,18 @@
 {
   "id": "avmatrix",
-  "name": "AV Matrix HVS",
-  "shortname": "AVMatrix",
-  "description": "Companion module for AV Matrix / Video Mixer (UDP).",
+  "name": "AV MATRIX Video Switcher",
+  "shortname": "AV MATRIX",
+  "description": "AV MATRIX (OEM) video mixer / switcher controlled via UDP (ports 19523 / 19522).",
   "version": "1.4.0",
   "license": "MIT",
-  "repository": "git+https://example.invalid/avmatrix-companion-module.git",
-  "bugs": "https://example.invalid/issues",
-  "maintainers": [{ "name": "Pawel", "email": "pawel@lygan.co.uk" }],
+  "repository": "git+https://github.com/lygilygi/companion-module-avmatrix.git",
+  "bugs": "https://github.com/lygilygi/companion-module-avmatrix/issues",
+  "maintainers": [
+    {
+      "name": "Pawel Lygan",
+      "email": "Lygan.tech@gmail.com"
+    }
+  ],
   "runtime": {
     "type": "node22",
     "api": "nodejs-ipc",
@@ -15,7 +20,14 @@
     "entrypoint": "../dist/main.js"
   },
   "legacyIds": [],
-  "manufacturer": "AV Matrix (OEM)",
-  "products": ["Video Mixer / Switcher (UDP 19523/19522)"],
-  "keywords": ["switcher", "udp", "pgm", "pvw", "ftb"]
+  "manufacturer": "AV MATRIX",
+  "products": [
+    "AV MATRIX OEM 0402U",
+    "AV MATRIX OEM 0403U"
+  ],
+  "keywords": [
+    "video switcher",
+    "video mixer",
+    "av matrix"
+  ]
 }
