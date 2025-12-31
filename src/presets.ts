@@ -22,10 +22,9 @@ export function initPresets(instance: any) {
 	const purpleOn = { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) }
 	const purpleOff = { bgcolor: combineRgb(35, 0, 45), color: combineRgb(255, 255, 255) }
 
-
-	for (const s of VIDEO_SOURCES) {
-		const id = s.id
-		const label = s.label
+	for (const src of VIDEO_SOURCES) {
+		const id = src.id
+		const label = src.label
 
 		presets.push({
 			type: 'button',
@@ -47,25 +46,24 @@ export function initPresets(instance: any) {
 	}
 
 	for (const st of STILL_INPUTS) {
-		const id = st.id
-		const label = st.label
+		const i = st.id
 
 		presets.push({
 			type: 'button',
 			category: 'Stills / PGM',
-			name: `PGM STILL ${label}`,
-			style: { text: `PGM\nSTILL\n${label}`, size: 'auto', ...stillOff },
-			steps: [{ down: [{ actionId: 'still_to_pgm', options: { still: id } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pgm_still_is', options: { still: id }, style: stillOn }],
+			name: `PGM STILL ${i}`,
+			style: { text: `PGM\nSTILL${i}`, size: 'auto', ...stillOff },
+			steps: [{ down: [{ actionId: 'still_to_pgm', options: { still: i } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pgm_still_is', options: { still: i }, style: stillOn }],
 		})
 
 		presets.push({
 			type: 'button',
 			category: 'Stills / PVW',
-			name: `PVW STILL ${label}`,
-			style: { text: `PVW\nSTILL\n${label}`, size: 'auto', ...stillOff },
-			steps: [{ down: [{ actionId: 'still_to_pvw', options: { still: id } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pvw_still_is', options: { still: id }, style: stillOn }],
+			name: `PVW STILL ${i}`,
+			style: { text: `PVW\nSTILL${i}`, size: 'auto', ...stillOff },
+			steps: [{ down: [{ actionId: 'still_to_pvw', options: { still: i } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pvw_still_is', options: { still: i }, style: stillOn }],
 		})
 	}
 
