@@ -2,7 +2,7 @@ import { combineRgb } from '@companion-module/base'
 import { VIDEO_SOURCES, STILL_INPUTS } from './constants'
 
 export function initPresets(instance: any) {
-	const presets = []
+	const presets: any[] = []
 
 	const redOn = { bgcolor: combineRgb(200, 0, 0), color: combineRgb(255, 255, 255) }
 	const redOff = { bgcolor: combineRgb(60, 0, 0), color: combineRgb(255, 255, 255) }
@@ -22,41 +22,50 @@ export function initPresets(instance: any) {
 	const purpleOn = { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) }
 	const purpleOff = { bgcolor: combineRgb(35, 0, 45), color: combineRgb(255, 255, 255) }
 
-	for (let i = 1; i <= 16; i++) {
+
+	for (const s of VIDEO_SOURCES) {
+		const id = s.id
+		const label = s.label
+
 		presets.push({
 			type: 'button',
 			category: 'Inputs / PGM',
-			name: `PGM IN${i}`,
-			style: { text: `PGM\nIN${i}`, size: 'auto', ...redOff },
-			steps: [{ down: [{ actionId: 'pgm_set', options: { source: i } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pgm_is', options: { source: i }, style: redOn }],
+			name: `PGM ${label}`,
+			style: { text: `PGM\n${label}`, size: 'auto', ...redOff },
+			steps: [{ down: [{ actionId: 'pgm_set', options: { source: id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pgm_is', options: { source: id }, style: redOn }],
 		})
 
 		presets.push({
 			type: 'button',
 			category: 'Inputs / PVW',
-			name: `PVW IN${i}`,
-			style: { text: `PVW\nIN${i}`, size: 'auto', ...greenOff },
-			steps: [{ down: [{ actionId: 'pvw_set', options: { source: i } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pvw_is', options: { source: i }, style: greenOn }],
+			name: `PVW ${label}`,
+			style: { text: `PVW\n${label}`, size: 'auto', ...greenOff },
+			steps: [{ down: [{ actionId: 'pvw_set', options: { source: id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pvw_is', options: { source: id }, style: greenOn }],
 		})
+	}
+
+	for (const st of STILL_INPUTS) {
+		const id = st.id
+		const label = st.label
 
 		presets.push({
 			type: 'button',
 			category: 'Stills / PGM',
-			name: `PGM STILL ${i}`,
-			style: { text: `PGM\nSTILL${i}`, size: 'auto', ...stillOff },
-			steps: [{ down: [{ actionId: 'still_to_pgm', options: { still: i } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pgm_still_is', options: { still: i }, style: stillOn }],
+			name: `PGM STILL ${label}`,
+			style: { text: `PGM\nSTILL\n${label}`, size: 'auto', ...stillOff },
+			steps: [{ down: [{ actionId: 'still_to_pgm', options: { still: id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pgm_still_is', options: { still: id }, style: stillOn }],
 		})
 
 		presets.push({
 			type: 'button',
 			category: 'Stills / PVW',
-			name: `PVW STILL ${i}`,
-			style: { text: `PVW\nSTILL${i}`, size: 'auto', ...stillOff },
-			steps: [{ down: [{ actionId: 'still_to_pvw', options: { still: i } }], up: [] }],
-			feedbacks: [{ feedbackId: 'pvw_still_is', options: { still: i }, style: stillOn }],
+			name: `PVW STILL ${label}`,
+			style: { text: `PVW\nSTILL\n${label}`, size: 'auto', ...stillOff },
+			steps: [{ down: [{ actionId: 'still_to_pvw', options: { still: id } }], up: [] }],
+			feedbacks: [{ feedbackId: 'pvw_still_is', options: { still: id }, style: stillOn }],
 		})
 	}
 
