@@ -1,141 +1,70 @@
-Companion module for controlling AVMatrix video switchers via UDP, based directly on the official AVMatrix API.
+# AVMatrix (0402U / 0403U) module for Bitfocus Companion
 
+This module adds UDP control for AVMatrix video switchers, including full switching, keyers, audio control, STILL (input freeze), output routing and feedbacks.
 
-⸻
+Supported devices:
+- AVMatrix 0402U
+- AVMatrix 0403U
 
-**Tested devices**
+## Installation (local development)
 
-The following devices have been tested and confirmed working:
+1. Clone the repository.
+2. Install dependencies:
+   - yarn install
+3. Build:
+   - yarn build
 
-AVMatrix HVS0402U
-AVMatrix HVS0403U
+The compiled module will be in the dist/ directory.
 
+## Configuration
 
-⸻
+In Companion, add the module and set:
+- Host: the IP address of the switcher
 
-**Configuration**
+The module communicates via UDP.
 
-Device IP
+## What is STILL in this module?
 
-Set the IP address of the AVMatrix switcher in the module configuration.
+STILL is the input freeze function (not loading/storing images).
+When STILL is enabled on a given input, selecting that input on PVW/PGM will show STILL state on the corresponding bus.
 
-Ports:
-	•	Local UDP port: defined by the module
-	•	Device UDP port: according to AVMatrix documentation
+## Features
 
-When the connection is successful, the module status will change to:
+Video switching:
+- PGM/PVW switching
+- CUT / AUTO
+- FTB
 
+Keyers:
+- LUMA / CHROMA / DSK
+- PIP1 / PIP2
+- LOGO
+- ON AIR control and feedbacks for each
 
-Connected (x.x.x.x)
-⸻
+Audio:
+- MUTE control and feedback
+- Channel settings (where supported by the device)
 
-**Functionality**
+STILL (input freeze):
+- ON / OFF / TOGGLE per input
+- ALL OFF helper action
 
-Video Inputs
-	•	PGM source selection
-	•	PVW source selection
-	•	CUT
-	•	AUTO
+Output routing (TX only):
+- Multiview Out
+- PGM Out
+- USB Out
+Destinations:
+- SDI 1, SDI 2, HDMI 3, HDMI 4
+- Program, Clean Program, Preview
+- Color Bar, Multiview
 
-STILL (input freeze)
-	•	STILL ON / OFF / TOGGLE per input
-	•	Works as input freeze, not image loading
-	•	State depends on which input is currently active on PGM or PVW
-	•	Feedback follows the active bus and frozen input
+## Logging
 
-Keys / Layers
-	•	LUMA
-	•	CHROMA
-	•	DSK
-	•	PIP1
-	•	PIP2
-	•	LOGO
+The module keeps logging minimal to avoid Companion log spam.
+Errors are always logged.
 
-For each key:
-	•	ON AIR
-	•	KEY
-	•	Combined modes, according to API
+If you enable any debug logging flags in the code, use them only for short troubleshooting sessions.
 
-Audio
-	•	MUTE ON / OFF 
-
-Output Routing (TX only without feedback)
-
-Output source control for:
-	•	MV OUT
-	•	PGM OUT
-	•	USB OUT
-
-Available sources:
-	•	SDI 1
-	•	SDI 2
-	•	HDMI 3
-	•	HDMI 4
-	•	PGM
-	•	CLEAN PGM
-	•	PVW
-	•	COLOR BAR
-	•	MULTIVIEW
-
-Routing is implemented as actions with dropdown selections.
-
-⸻
-
-**Presets**
-
-The module includes ready-to-use presets:
-	•	PGM / PVW input selection
-	•	CUT / AUTO
-	•	STILL PGM / STILL PVW
-	•	ON AIR keys
-	•	Audio MUTE
-
-⸻
-
-**Feedback**
-
-Available feedbacks:
-	•	PGM source
-	•	PVW source
-	•	STILL active state
-	•	ON AIR state for keyers
-	•	Audio MUTE state
-
-Color conventions:
-	•	PGM – red
-	•	PVW – green
-	•	STILL – follows active bus
-	•	Keys – purple
-	•	Audio – blue
-
-⸻
-
-**Logging**
-
-By default:
-	•	no RX/TX frame logging
-	•	no debug spam
-	•	only critical errors (UDP error, init error)
-
-This behavior is intentional and compliant with Companion best practices.
-
-Logging can be temporarily enabled for debugging but is not required for normal operation.
-
-⸻
-
-**Development Notes
-**
-The codebase is structured as follows:
-	•	instance.ts – UDP communication and state handling
-	•	actions.ts – Companion actions
-	•	feedbacks.ts – feedback definitions
-	•	presets.ts – preset definitions
-	•	constants.ts – API mappings
-
-Changes can be introduced incrementally without regression risk.
-
-⸻
-
-License
+## License
 
 MIT
