@@ -2,18 +2,30 @@ import type { CompanionActionDefinitions } from '@companion-module/base'
 import { clampInt } from './utils'
 import type { AVMatrixInstance } from './instance'
 
-import { VIDEO_SOURCES, STILL_INPUTS, PIP_SOURCES, PIP_SIZES, AUDIO_CHANNELS, KEY_MODES, HP_SOURCES } from './constants'
+import { VIDEO_SOURCES, PIP_SOURCES, PIP_SIZES, AUDIO_CHANNELS, KEY_MODES, HP_SOURCES } from './constants'
 
-export function initActions(instance: any) {
+const OUTPUT_PORT_CHOICES = [
+	{ id: 0, label: 'SDI 1' },
+	{ id: 1, label: 'SDI 2' },
+	{ id: 2, label: 'HDMI 3' },
+	{ id: 3, label: 'HDMI 4' },
+	{ id: 4, label: 'PGM' },
+	{ id: 5, label: 'CLEAN PGM' },
+	{ id: 6, label: 'PVW' },
+	{ id: 7, label: 'COLOR BAR' },
+	{ id: 8, label: 'Multiview' },
+]
+
+export function initActions(instance: AVMatrixInstance) {
 	const videoChoices = VIDEO_SOURCES.map((s) => ({ id: s.id, label: s.label }))
-	const stillChoices = STILL_INPUTS.map((s) => ({ id: s.id, label: s.label }))
+	const inputChoices = VIDEO_SOURCES.filter((s) => s.id >= 1 && s.id <= 4).map((s) => ({ id: s.id, label: s.label }))
 	const audioChoices = AUDIO_CHANNELS.map((c) => ({ id: c.id, label: c.label }))
 	const hpChoices = HP_SOURCES.map((c) => ({ id: c.id, label: c.label }))
 	const keyModeChoices = KEY_MODES.map((m) => ({ id: m.id, label: m.label }))
 	const pipSrcChoices = PIP_SOURCES.map((s) => ({ id: s.id, label: s.label }))
 	const pipSizeChoices = PIP_SIZES.map((s) => ({ id: s.id, label: s.label }))
 
-	instance.setActionDefinitions({
+	const actions: CompanionActionDefinitions = {
 		pgm_set: {
 			name: 'Set PGM Source',
 			options: [{ id: 'source', type: 'dropdown', label: 'Source', default: 1, choices: videoChoices }],
@@ -25,6 +37,7 @@ export function initActions(instance: any) {
 				instance.checkFeedbacks('pgm_still_is')
 			},
 		},
+
 		pvw_set: {
 			name: 'Set PVW Source',
 			options: [{ id: 'source', type: 'dropdown', label: 'Source', default: 1, choices: videoChoices }],
@@ -36,6 +49,7 @@ export function initActions(instance: any) {
 				instance.checkFeedbacks('pvw_still_is')
 			},
 		},
+
 		cut: { name: 'CUT', options: [], callback: async () => instance.sendCmd(0x11, [0x02, 0x00]) },
 		auto: { name: 'AUTO', options: [], callback: async () => instance.sendCmd(0x11, [0x01, 0x00]) },
 
@@ -68,164 +82,48 @@ export function initActions(instance: any) {
 			},
 		},
 
-		still_to_pgm: {
-			name: 'STILL → PGM',
-			options: [{ id: 'still', type: 'dropdown', label: 'Still', default: 1, choices: stillChoices }],
+		still_input_on: {
+			name: 'Input STILL: ON',
+			options: [{ id: 'input', type: 'dropdown', label: 'Input', default: 1, choices: inputChoices }],
 			callback: async (action) => {
-				const idx = Number(action.options.still)
-				instance.setStillInput(idx, true)
-				instance.sendCmd(0x12, [idx])
-				instance.state.pgm = idx
-				instance.checkFeedbacks('pgm_is')
-				instance.checkFeedbacks('pgm_still_is')
+				instance.setStillInput(Number(action.options.input), true)
 			},
 		},
-		still_to_pvw: {
-			name: 'STILL → PVW',
-			options: [{ id: 'still', type: 'dropdown', label: 'Still', default: 1, choices: stillChoices }],
+		still_input_off: {
+			name: 'Input STILL: OFF',
+			options: [{ id: 'input', type: 'dropdown', label: 'Input', default: 1, choices: inputChoices }],
 			callback: async (action) => {
-				const idx = Number(action.options.still)
-				instance.setStillInput(idx, true)
-				instance.sendCmd(0x13, [idx])
-				instance.state.pvw = idx
-				instance.checkFeedbacks('pvw_is')
-				instance.checkFeedbacks('pvw_still_is')
+				instance.setStillInput(Number(action.options.input), false)
+			},
+		},
+		still_input_toggle: {
+			name: 'Input STILL: TOGGLE',
+			options: [{ id: 'input', type: 'dropdown', label: 'Input', default: 1, choices: inputChoices }],
+			callback: async (action) => {
+				instance.toggleStillInput(Number(action.options.input))
 			},
 		},
 
-		
-		
 		luma_mode_set: {
-		name: 'LUMA: Set Mode (Off/Key/OnAir/Key+OnAir)',
-		options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
-		callback: async (action) => {
-			instance.state.keyStatus[0] = Number(action.options.mode)
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('luma_onair')
-			instance.checkFeedbacks('luma_key')
-		},
+			name: 'LUMA: Set Mode (Off/Key/OnAir/Key+OnAir)',
+			options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
+			callback: async (action) => {
+				instance.state.keyStatus[0] = Number(action.options.mode)
+				instance.sendKeyStatus()
+				instance.checkFeedbacks('luma_onair')
+				instance.checkFeedbacks('luma_key')
+			},
 		},
 		chroma_mode_set: {
-		name: 'CHROMA: Set Mode (Off/Key/OnAir/Key+OnAir)',
-		options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
-		callback: async (action) => {
-			instance.state.keyStatus[1] = Number(action.options.mode)
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('chroma_onair')
-			instance.checkFeedbacks('chroma_key')
+			name: 'CHROMA: Set Mode (Off/Key/OnAir/Key+OnAir)',
+			options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
+			callback: async (action) => {
+				instance.state.keyStatus[1] = Number(action.options.mode)
+				instance.sendKeyStatus()
+				instance.checkFeedbacks('chroma_onair')
+				instance.checkFeedbacks('chroma_key')
+			},
 		},
-		},
-		dsk_mode_set: {
-		name: 'DSK: Set Mode (Off/Key/OnAir/Key+OnAir)',
-		options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
-		callback: async (action) => {
-			instance.state.keyStatus[4] = Number(action.options.mode)
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('dsk_onair')
-			instance.checkFeedbacks('dsk_key')
-		},
-		},
-
-		luma_onair_on: {
-		name: 'ON AIR: LUMA ON',
-		options: [],
-		callback: async () => {
-			instance.state.keyStatus[0] = 2
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('luma_onair')
-			instance.checkFeedbacks('luma_key')
-		},
-		},
-		luma_onair_off: {
-		name: 'ON AIR: LUMA OFF',
-		options: [],
-		callback: async () => {
-			instance.state.keyStatus[0] = 0
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('luma_onair')
-			instance.checkFeedbacks('luma_key')
-		},
-		},
-		luma_onair_toggle: {
-		name: 'ON AIR: LUMA TOGGLE',
-		options: [],
-		callback: async () => {
-			const cur = instance.state.keyStatus[0] || 0
-			const next = (cur === 2 || cur === 3) ? 0 : 2
-			instance.state.keyStatus[0] = next
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('luma_onair')
-			instance.checkFeedbacks('luma_key')
-		},
-		},
-
-		chroma_onair_on: {
-		name: 'ON AIR: CHROMA ON',
-		options: [],
-		callback: async () => {
-			instance.state.keyStatus[1] = 2
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('chroma_onair')
-			instance.checkFeedbacks('chroma_key')
-		},
-		},
-		chroma_onair_off: {
-		name: 'ON AIR: CHROMA OFF',
-		options: [],
-		callback: async () => {
-			instance.state.keyStatus[1] = 0
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('chroma_onair')
-			instance.checkFeedbacks('chroma_key')
-		},
-		},
-		chroma_onair_toggle: {
-		name: 'ON AIR: CHROMA TOGGLE',
-		options: [],
-		callback: async () => {
-			const cur = instance.state.keyStatus[1] || 0
-			const next = (cur === 2 || cur === 3) ? 0 : 2
-			instance.state.keyStatus[1] = next
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('chroma_onair')
-			instance.checkFeedbacks('chroma_key')
-		},
-		},
-
-		dsk_onair_on: {
-		name: 'ON AIR: DSK ON',
-		options: [],
-		callback: async () => {
-			instance.state.keyStatus[4] = 2
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('dsk_onair')
-			instance.checkFeedbacks('dsk_key')
-		},
-		},
-		dsk_onair_off: {
-		name: 'ON AIR: DSK OFF',
-		options: [],
-		callback: async () => {
-			instance.state.keyStatus[4] = 0
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('dsk_onair')
-			instance.checkFeedbacks('dsk_key')
-		},
-		},
-		dsk_onair_toggle: {
-		name: 'ON AIR: DSK TOGGLE',
-		options: [],
-		callback: async () => {
-			const cur = instance.state.keyStatus[4] || 0
-			const next = (cur === 2 || cur === 3) ? 0 : 2
-			instance.state.keyStatus[4] = next
-			instance.sendKeyStatus()
-			instance.checkFeedbacks('dsk_onair')
-			instance.checkFeedbacks('dsk_key')
-		},
-		},
-		
-		
 		pip1_mode_set: {
 			name: 'PIP1: Set Mode (Off/Key/OnAir/Key+OnAir)',
 			options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
@@ -246,6 +144,16 @@ export function initActions(instance: any) {
 				instance.checkFeedbacks('pip2_key')
 			},
 		},
+		dsk_mode_set: {
+			name: 'DSK: Set Mode (Off/Key/OnAir/Key+OnAir)',
+			options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
+			callback: async (action) => {
+				instance.state.keyStatus[4] = Number(action.options.mode)
+				instance.sendKeyStatus()
+				instance.checkFeedbacks('dsk_onair')
+				instance.checkFeedbacks('dsk_key')
+			},
+		},
 		logo_mode_set: {
 			name: 'LOGO: Set Mode (Off/Key/OnAir/Key+OnAir)',
 			options: [{ id: 'mode', type: 'dropdown', label: 'Mode', default: 0, choices: keyModeChoices }],
@@ -257,24 +165,26 @@ export function initActions(instance: any) {
 			},
 		},
 
-		pip1_onair_on: {
-			name: 'ON AIR: PIP1 ON',
+		luma_onair_toggle: {
+			name: 'ON AIR: LUMA TOGGLE',
 			options: [],
 			callback: async () => {
-				instance.state.keyStatus[2] = 2
+				const cur = instance.state.keyStatus[0] || 0
+				instance.state.keyStatus[0] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
-				instance.checkFeedbacks('pip1_onair')
-				instance.checkFeedbacks('pip1_key')
+				instance.checkFeedbacks('luma_onair')
+				instance.checkFeedbacks('luma_key')
 			},
 		},
-		pip1_onair_off: {
-			name: 'ON AIR: PIP1 OFF',
+		chroma_onair_toggle: {
+			name: 'ON AIR: CHROMA TOGGLE',
 			options: [],
 			callback: async () => {
-				instance.state.keyStatus[2] = 0
+				const cur = instance.state.keyStatus[1] || 0
+				instance.state.keyStatus[1] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
-				instance.checkFeedbacks('pip1_onair')
-				instance.checkFeedbacks('pip1_key')
+				instance.checkFeedbacks('chroma_onair')
+				instance.checkFeedbacks('chroma_key')
 			},
 		},
 		pip1_onair_toggle: {
@@ -282,32 +192,10 @@ export function initActions(instance: any) {
 			options: [],
 			callback: async () => {
 				const cur = instance.state.keyStatus[2] || 0
-				const next = (cur === 2 || cur === 3) ? 0 : 2
-				instance.state.keyStatus[2] = next
+				instance.state.keyStatus[2] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('pip1_onair')
 				instance.checkFeedbacks('pip1_key')
-			},
-		},
-
-		pip2_onair_on: {
-			name: 'ON AIR: PIP2 ON',
-			options: [],
-			callback: async () => {
-				instance.state.keyStatus[3] = 2
-				instance.sendKeyStatus()
-				instance.checkFeedbacks('pip2_onair')
-				instance.checkFeedbacks('pip2_key')
-			},
-		},
-		pip2_onair_off: {
-			name: 'ON AIR: PIP2 OFF',
-			options: [],
-			callback: async () => {
-				instance.state.keyStatus[3] = 0
-				instance.sendKeyStatus()
-				instance.checkFeedbacks('pip2_onair')
-				instance.checkFeedbacks('pip2_key')
 			},
 		},
 		pip2_onair_toggle: {
@@ -315,32 +203,21 @@ export function initActions(instance: any) {
 			options: [],
 			callback: async () => {
 				const cur = instance.state.keyStatus[3] || 0
-				const next = (cur === 2 || cur === 3) ? 0 : 2
-				instance.state.keyStatus[3] = next
+				instance.state.keyStatus[3] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('pip2_onair')
 				instance.checkFeedbacks('pip2_key')
 			},
 		},
-
-		logo_onair_on: {
-			name: 'ON AIR: LOGO ON',
+		dsk_onair_toggle: {
+			name: 'ON AIR: DSK TOGGLE',
 			options: [],
 			callback: async () => {
-				instance.state.keyStatus[5] = 2
+				const cur = instance.state.keyStatus[4] || 0
+				instance.state.keyStatus[4] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
-				instance.checkFeedbacks('logo_onair')
-				instance.checkFeedbacks('logo_key')
-			},
-		},
-		logo_onair_off: {
-			name: 'ON AIR: LOGO OFF',
-			options: [],
-			callback: async () => {
-				instance.state.keyStatus[5] = 0
-				instance.sendKeyStatus()
-				instance.checkFeedbacks('logo_onair')
-				instance.checkFeedbacks('logo_key')
+				instance.checkFeedbacks('dsk_onair')
+				instance.checkFeedbacks('dsk_key')
 			},
 		},
 		logo_onair_toggle: {
@@ -348,8 +225,7 @@ export function initActions(instance: any) {
 			options: [],
 			callback: async () => {
 				const cur = instance.state.keyStatus[5] || 0
-				const next = (cur === 2 || cur === 3) ? 0 : 2
-				instance.state.keyStatus[5] = next
+				instance.state.keyStatus[5] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('logo_onair')
 				instance.checkFeedbacks('logo_key')
@@ -359,94 +235,36 @@ export function initActions(instance: any) {
 		pip1_set: {
 			name: 'PIP1: Set Source/Size/X/Y',
 			options: [
-				{ id: 'src', type: 'dropdown', label: 'Source', default: instance.state.pip1.src, choices: pipSrcChoices },
+				{ id: 'src', type: 'dropdown', label: 'Source', default: instance.state.pip1.source, choices: pipSrcChoices },
 				{ id: 'size', type: 'dropdown', label: 'Size', default: instance.state.pip1.size, choices: pipSizeChoices },
 				{ id: 'x', type: 'number', label: 'X (0–100)', min: 0, max: 100, default: instance.state.pip1.x },
 				{ id: 'y', type: 'number', label: 'Y (0–100)', min: 0, max: 100, default: instance.state.pip1.y },
 			],
 			callback: async (action) => {
-				instance.state.pip1.src = Number(action.options.src)
+				instance.state.pip1.source = Number(action.options.src)
 				instance.state.pip1.size = Number(action.options.size)
 				instance.state.pip1.x = clampInt(action.options.x, 0, 100)
 				instance.state.pip1.y = clampInt(action.options.y, 0, 100)
 				instance.sendPip1()
 				instance.checkFeedbacks('pip1_source_is')
-			},
-		},
-		pip1_source_set: {
-			name: 'PIP1: Set Source',
-			options: [{ id: 'src', type: 'dropdown', label: 'Source', default: instance.state.pip1.src, choices: pipSrcChoices }],
-			callback: async (action) => {
-				instance.state.pip1.src = Number(action.options.src)
-				instance.sendPip1()
-				instance.checkFeedbacks('pip1_source_is')
-			},
-		},
-		pip1_size_set: {
-			name: 'PIP1: Set Size',
-			options: [{ id: 'size', type: 'dropdown', label: 'Size', default: instance.state.pip1.size, choices: pipSizeChoices }],
-			callback: async (action) => {
-				instance.state.pip1.size = Number(action.options.size)
-				instance.sendPip1()
-			},
-		},
-		pip1_pos_set: {
-			name: 'PIP1: Set Position (X/Y)',
-			options: [
-				{ id: 'x', type: 'number', label: 'X (0–100)', min: 0, max: 100, default: instance.state.pip1.x },
-				{ id: 'y', type: 'number', label: 'Y (0–100)', min: 0, max: 100, default: instance.state.pip1.y },
-			],
-			callback: async (action) => {
-				instance.state.pip1.x = clampInt(action.options.x, 0, 100)
-				instance.state.pip1.y = clampInt(action.options.y, 0, 100)
-				instance.sendPip1()
 			},
 		},
 
 		pip2_set: {
 			name: 'PIP2: Set Source/Size/X/Y',
 			options: [
-				{ id: 'src', type: 'dropdown', label: 'Source', default: instance.state.pip2.src, choices: pipSrcChoices },
+				{ id: 'src', type: 'dropdown', label: 'Source', default: instance.state.pip2.source, choices: pipSrcChoices },
 				{ id: 'size', type: 'dropdown', label: 'Size', default: instance.state.pip2.size, choices: pipSizeChoices },
 				{ id: 'x', type: 'number', label: 'X (0–100)', min: 0, max: 100, default: instance.state.pip2.x },
 				{ id: 'y', type: 'number', label: 'Y (0–100)', min: 0, max: 100, default: instance.state.pip2.y },
 			],
 			callback: async (action) => {
-				instance.state.pip2.src = Number(action.options.src)
+				instance.state.pip2.source = Number(action.options.src)
 				instance.state.pip2.size = Number(action.options.size)
 				instance.state.pip2.x = clampInt(action.options.x, 0, 100)
 				instance.state.pip2.y = clampInt(action.options.y, 0, 100)
 				instance.sendPip2()
 				instance.checkFeedbacks('pip2_source_is')
-			},
-		},
-		pip2_source_set: {
-			name: 'PIP2: Set Source',
-			options: [{ id: 'src', type: 'dropdown', label: 'Source', default: instance.state.pip2.src, choices: pipSrcChoices }],
-			callback: async (action) => {
-				instance.state.pip2.src = Number(action.options.src)
-				instance.sendPip2()
-				instance.checkFeedbacks('pip2_source_is')
-			},
-		},
-		pip2_size_set: {
-			name: 'PIP2: Set Size',
-			options: [{ id: 'size', type: 'dropdown', label: 'Size', default: instance.state.pip2.size, choices: pipSizeChoices }],
-			callback: async (action) => {
-				instance.state.pip2.size = Number(action.options.size)
-				instance.sendPip2()
-			},
-		},
-		pip2_pos_set: {
-			name: 'PIP2: Set Position (X/Y)',
-			options: [
-				{ id: 'x', type: 'number', label: 'X (0–100)', min: 0, max: 100, default: instance.state.pip2.x },
-				{ id: 'y', type: 'number', label: 'Y (0–100)', min: 0, max: 100, default: instance.state.pip2.y },
-			],
-			callback: async (action) => {
-				instance.state.pip2.x = clampInt(action.options.x, 0, 100)
-				instance.state.pip2.y = clampInt(action.options.y, 0, 100)
-				instance.sendPip2()
 			},
 		},
 
@@ -462,34 +280,6 @@ export function initActions(instance: any) {
 				instance.state.logo.x = clampInt(action.options.x, 0, 100)
 				instance.state.logo.y = clampInt(action.options.y, 0, 100)
 				instance.state.logo.size = clampInt(action.options.size, 50, 150)
-				instance.state.logo.opacity = clampInt(action.options.opacity, 20, 100)
-				instance.sendLogo()
-			},
-		},
-		logo_pos_set: {
-			name: 'LOGO: Set Position (X/Y)',
-			options: [
-				{ id: 'x', type: 'number', label: 'X (0–100)', min: 0, max: 100, default: instance.state.logo.x },
-				{ id: 'y', type: 'number', label: 'Y (0–100)', min: 0, max: 100, default: instance.state.logo.y },
-			],
-			callback: async (action) => {
-				instance.state.logo.x = clampInt(action.options.x, 0, 100)
-				instance.state.logo.y = clampInt(action.options.y, 0, 100)
-				instance.sendLogo()
-			},
-		},
-		logo_size_set: {
-			name: 'LOGO: Set Size',
-			options: [{ id: 'size', type: 'number', label: 'Size (50–150)', min: 50, max: 150, default: instance.state.logo.size }],
-			callback: async (action) => {
-				instance.state.logo.size = clampInt(action.options.size, 50, 150)
-				instance.sendLogo()
-			},
-		},
-		logo_opacity_set: {
-			name: 'LOGO: Set Opacity',
-			options: [{ id: 'opacity', type: 'number', label: 'Opacity (20–100)', min: 20, max: 100, default: instance.state.logo.opacity }],
-			callback: async (action) => {
 				instance.state.logo.opacity = clampInt(action.options.opacity, 20, 100)
 				instance.sendLogo()
 			},
@@ -554,7 +344,6 @@ export function initActions(instance: any) {
 			},
 		},
 
-
 		audio_hp_select: {
 			name: 'Audio: HeadPhones Select Source',
 			options: [{ id: 'src', type: 'dropdown', label: 'HeadPhones Source', default: 0, choices: hpChoices }],
@@ -581,5 +370,29 @@ export function initActions(instance: any) {
 				instance.sendAudioSetting(6)
 			},
 		},
-	})
+
+		output_mv_set: {
+			name: 'Output: Set MV OUT',
+			options: [{ id: 'src', type: 'dropdown', label: 'Source', default: 8, choices: OUTPUT_PORT_CHOICES }],
+			callback: async (action) => {
+				instance.setMvOut(Number(action.options.src))
+			},
+		},
+		output_pgm_set: {
+			name: 'Output: Set PGM OUT',
+			options: [{ id: 'src', type: 'dropdown', label: 'Source', default: 4, choices: OUTPUT_PORT_CHOICES }],
+			callback: async (action) => {
+				instance.setPgmOutPort(Number(action.options.src))
+			},
+		},
+		output_usb_set: {
+			name: 'Output: Set USB OUT',
+			options: [{ id: 'src', type: 'dropdown', label: 'Source', default: 4, choices: OUTPUT_PORT_CHOICES }],
+			callback: async (action) => {
+				instance.setUsbOut(Number(action.options.src))
+			},
+		},
+	}
+
+	instance.setActionDefinitions(actions)
 }

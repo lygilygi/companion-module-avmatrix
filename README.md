@@ -1,54 +1,142 @@
-# AVMatrix – Video Switcher
+Companion module for controlling AVMatrix video switchers via UDP, based directly on the official AVMatrix API.
 
-Companion module for AVMatrix video switchers controlled over UDP.
 
-## Features
+⸻
 
-- PGM / PVW switching
-- Still selection (16 stills)
-- Fade To Black (FTB)
-- Keyers / overlays (where supported by device)
-- Audio controls (where supported by device)
-
-## Tested devices
+Tested devices
 
 The following devices have been tested and confirmed working:
 
-- **AVMatrix HVS0402U**
-- **AVMatrix HVS0403U**
+AVMatrix HVS0402U
+AVMatrix HVS0403U
 
-Other AVMatrix video switchers using the same UDP control protocol may also work, but are untested.
 
-## Requirements
+⸻
 
-- Bitfocus Companion v4+
-- Network connectivity to the device
-- UDP reachable:
-  - Device control: UDP 19523
-  - Device status: UDP 19522
+Configuration
 
-## Setup (Companion)
+Device IP
 
-1. In Companion go to **Connections** → **Add connection**
-2. Select **AVMatrix – Video Switcher**
-3. Enter the device **IP address**
-4. Apply / save
+Set the IP address of the AVMatrix switcher in the module configuration.
 
-If everything is correct, the module status should change to **Connected** after a moment.
+Ports:
+	•	Local UDP port: defined by the module
+	•	Device UDP port: according to AVMatrix documentation
 
-## Troubleshooting
+When the connection is successful, the module status will change to:
 
-### Not connecting / stays red
-- Confirm the device IP is correct
-- Confirm UDP ports **19523 / 19522** are not blocked by firewall
-- Make sure the device and Companion are on the same network (or routing allows UDP)
 
-### No status feedbacks
-- Status is received over UDP **19522**
-- The device must be able to send UDP packets back to the Companion machine
+Connected (x.x.x.x)
+⸻
 
-## Development
+Functionality
 
-```bash
-yarn install
-yarn build
+Video Inputs
+	•	PGM source selection
+	•	PVW source selection
+	•	CUT
+	•	AUTO
+
+STILL (input freeze)
+	•	STILL ON / OFF / TOGGLE per input
+	•	Works as input freeze, not image loading
+	•	State depends on which input is currently active on PGM or PVW
+	•	Feedback follows the active bus and frozen input
+
+Keys / Layers
+	•	LUMA
+	•	CHROMA
+	•	DSK
+	•	PIP1
+	•	PIP2
+	•	LOGO
+
+For each key:
+	•	ON AIR
+	•	KEY
+	•	Combined modes, according to API
+
+Audio
+	•	MUTE ON / OFF 
+
+Output Routing (TX only without feedback)
+
+Output source control for:
+	•	MV OUT
+	•	PGM OUT
+	•	USB OUT
+
+Available sources:
+	•	SDI 1
+	•	SDI 2
+	•	HDMI 3
+	•	HDMI 4
+	•	PGM
+	•	CLEAN PGM
+	•	PVW
+	•	COLOR BAR
+	•	MULTIVIEW
+
+Routing is implemented as actions with dropdown selections.
+
+⸻
+
+Presets
+
+The module includes ready-to-use presets:
+	•	PGM / PVW input selection
+	•	CUT / AUTO
+	•	STILL PGM / STILL PVW
+	•	ON AIR keys
+	•	Audio MUTE
+
+⸻
+
+Feedback
+
+Available feedbacks:
+	•	PGM source
+	•	PVW source
+	•	STILL active state
+	•	ON AIR state for keyers
+	•	Audio MUTE state
+
+Color conventions:
+	•	PGM – red
+	•	PVW – green
+	•	STILL – follows active bus
+	•	Keys – purple
+	•	Audio – blue
+
+⸻
+
+Logging
+
+By default:
+	•	no RX/TX frame logging
+	•	no debug spam
+	•	only critical errors (UDP error, init error)
+
+This behavior is intentional and compliant with Companion best practices.
+
+Logging can be temporarily enabled for debugging but is not required for normal operation.
+
+⸻
+
+
+Development Notes
+
+The codebase is structured as follows:
+	•	instance.ts – UDP communication and state handling
+	•	actions.ts – Companion actions
+	•	feedbacks.ts – feedback definitions
+	•	presets.ts – preset definitions
+	•	constants.ts – API mappings
+
+Changes can be introduced incrementally without regression risk.
+
+⸻
+
+License
+
+MIT

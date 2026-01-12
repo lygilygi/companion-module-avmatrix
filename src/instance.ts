@@ -20,7 +20,7 @@ import {
 } from './constants'
 import { clampInt } from './utils'
 
-function buildPacket(cmd, dataBytes) {
+function buildPacket(cmd: number, dataBytes?: number[]) {
 	const devType = 0x00
 	const devId = 0x00
 	const reserve = 0x00
@@ -36,7 +36,7 @@ function buildPacket(cmd, dataBytes) {
 	return Buffer.from([...base, checksum, 0xdd])
 }
 
-export interface KeyerStatusState {
+export interface AVMatrixState {
 	pgm: number
 	pvw: number
 	ftb: boolean
@@ -47,6 +47,7 @@ export interface KeyerStatusState {
 	pip1: { source: number; x: number; y: number; size: number }
 	pip2: { source: number; x: number; y: number; size: number }
 	logo: { source: number; x: number; y: number; size: number; opacity: number }
+	outputPorts: { mv: number; pgm: number; usb: number }
 }
 
 export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
@@ -59,38 +60,34 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 	private lastStatusRxAt = 0
 	private rxMissCount = 0
 	private lastStatusKey = ''
-	public state: KeyerStatusState
+	public state: AVMatrixState
 
 	constructor(internal: any) {
-	super(internal)
-	this.config = { host: '' }
-	this.state = {
+		super(internal)
+		this.config = { host: '' }
+		this.state = {
 			pgm: 1,
 			pvw: 1,
 			ftb: false,
 			mute: false,
-
-			still: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
+			still: Array.from({ length: 16 }, () => 0),
 			keyStatus: [0, 0, 0, 0, 0, 0],
-
 			pip1: { source: 4, size: 1, x: 50, y: 50 },
 			pip2: { source: 5, size: 1, x: 60, y: 60 },
-
 			logo: { source: 1, x: 50, y: 50, size: 100, opacity: 100 },
-
 			audio: {
 				ch: {
-					0: { sw: 1, vol: 60, delay: 0, mode: 0 }, // Master (mode = AFV 0/1)
+					0: { sw: 1, vol: 60, delay: 0, mode: 0 },
 					1: { sw: 1, vol: 60, delay: 0, mode: 0 },
 					2: { sw: 1, vol: 60, delay: 0, mode: 0 },
 					3: { sw: 1, vol: 60, delay: 0, mode: 0 },
 					4: { sw: 1, vol: 60, delay: 0, mode: 0 },
-					5: { sw: 1, vol: 60, delay: 0, mode: 0 }, // Mic1 (mode = Line/Mic)
-					6: { sw: 1, vol: 60, delay: 0, mode: 0 }, // Mic2
-					7: { sw: 1, vol: 60, delay: 0, mode: 0 }, // HP (mode = HP select)
+					5: { sw: 1, vol: 60, delay: 0, mode: 0 },
+					6: { sw: 1, vol: 60, delay: 0, mode: 0 },
+					7: { sw: 1, vol: 60, delay: 0, mode: 0 },
 				},
 			},
+			outputPorts: { mv: 8, pgm: 4, usb: 4 },
 		}
 	}
 
@@ -102,7 +99,7 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 		return this.getConfigFields()
 	}
 
-	async init(config) {
+	async init(config: AVMatrixConfig) {
 		this.config = config
 		this.updateStatus(InstanceStatus.Disconnected, 'Starting…')
 
@@ -124,7 +121,7 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 		this.closeUdp()
 	}
 
-	async configUpdated(config) {
+	async configUpdated(config: AVMatrixConfig) {
 		this.config = config
 		this.lastAnyRxAt = 0
 		this.lastStatusRxAt = 0
@@ -139,20 +136,15 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 		initActions(this)
 	}
 
-
 	initFeedbacks() {
 		initFeedbacks(this)
 	}
-
-
 
 	initPresets() {
 		initPresets(this)
 	}
 
-
-
-	async initUdp() {
+	private async initUdp() {
 		this.closeUdp()
 
 		const host = (this.config.host || '').trim()
@@ -178,14 +170,20 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 				if (rinfo.address === host && isStatus) {
 					this.lastStatusRxAt = Date.now()
 				}
-
-				this.log('debug', `RX ${rinfo.address}:${rinfo.port} ${msg.toString('hex')}`)
 			})
 
 			await new Promise<void>((resolve, reject) => {
 				let done = false
-				const onErr = (e: any) => { if (done) return; done = true; reject(e) }
-				const onListen = () => { if (done) return; done = true; resolve() }
+				const onErr = (e: any) => {
+					if (done) return
+					done = true
+					reject(e)
+				}
+				const onListen = () => {
+					if (done) return
+					done = true
+					resolve()
+				}
 				this.udp?.once('error', onErr as any)
 				this.udp?.once('listening', onListen as any)
 				this.udp?.bind(LOCAL_UDP_PORT)
@@ -194,23 +192,25 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 			this.lastAnyRxAt = 0
 			this.lastStatusRxAt = 0
 			this.rxMissCount = 0
-			this.setStatusOnce(InstanceStatus.Connecting, `Waiting for device RX (${host})…`)
-
-			this.log('info', `UDP bound local:${LOCAL_UDP_PORT} → device:${host}:${DEVICE_UDP_PORT}`)
-		} catch (e) {
+			this.setStatusOnce(
+				InstanceStatus.Connecting,
+				`Waiting for device RX (${host})…`
+			)
+		} catch (e: any) {
 			this.log('error', `UDP init failed: ${e?.message || e}`)
 			this.updateStatus(InstanceStatus.ConnectionFailure, e?.message || 'UDP init failed')
 		}
 	}
-
-	closeUdp() {
+	private closeUdp() {
 		if (this.udp) {
-			try { this.udp.close() } catch (e) {}
+			try {
+				this.udp.close()
+			} catch (e) {}
 			this.udp = null
 		}
 	}
 
-	startStatusWatcher() {
+	private startStatusWatcher() {
 		this.stopStatusWatcher()
 
 		const host = (this.config.host || '').trim()
@@ -220,8 +220,8 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 			if (!this.udp) return
 
 			const now = Date.now()
-			const anyRxOk = this.lastAnyRxAt && (now - this.lastAnyRxAt) <= ANY_RX_OK_MS
-			const statusRxOk = this.lastStatusRxAt && (now - this.lastStatusRxAt) <= STATUS_RX_OK_MS
+			const anyRxOk = this.lastAnyRxAt && now - this.lastAnyRxAt <= ANY_RX_OK_MS
+			const statusRxOk = this.lastStatusRxAt && now - this.lastStatusRxAt <= STATUS_RX_OK_MS
 
 			if (statusRxOk) {
 				this.rxMissCount = 0
@@ -238,21 +238,20 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 				return
 			}
 
-			if (this.rxMissCount >= (MISS_TO_WARNING * 2)) {
+			if (this.rxMissCount >= MISS_TO_WARNING * 2) {
 				this.setStatusOnce(InstanceStatus.Connecting, `Connected, waiting for status (${host})…`)
-			} else {
 			}
 		}, STATUS_TICK_MS)
 	}
 
-	stopStatusWatcher() {
+	private stopStatusWatcher() {
 		if (this.statusTimer) {
 			clearInterval(this.statusTimer)
 			this.statusTimer = null
 		}
 	}
 
-	setStatusOnce(status, text) {
+	private setStatusOnce(status: InstanceStatus, text: string) {
 		const k = `${status}|${text}`
 		if (this.lastStatusKey !== k) {
 			this.lastStatusKey = k
@@ -260,51 +259,49 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 		}
 	}
 
-	startPing() {
+	private startPing() {
 		this.stopPing()
 		const host = (this.config.host || '').trim()
 		if (!host || !this.udp) return
 
-		const pingPacket = buildPacket(0xff, [0x01]) // Search Device
+		const pingPacket = buildPacket(0xff, [0x01])
 		this.pingTimer = setInterval(() => {
 			if (!this.udp) return
 			this.udp.send(pingPacket, DEVICE_UDP_PORT, host)
-			this.log('debug', `TX(PING) ${host}:${DEVICE_UDP_PORT} ${pingPacket.toString('hex')}`)
 		}, PING_INTERVAL_MS)
 	}
 
-	stopPing() {
+	private stopPing() {
 		if (this.pingTimer) {
 			clearInterval(this.pingTimer)
 			this.pingTimer = null
 		}
 	}
 
-	startSync() {
+	private startSync() {
 		this.stopSync()
 		if (!this.udp) return
-		const sendSync = () => this.sendCmd(0xFE, [0x01]) // Sync=1
+		const sendSync = () => this.sendCmd(0xfe, [0x01])
 		sendSync()
 		this.syncTimer = setInterval(sendSync, SYNC_KEEPALIVE_MS)
 	}
 
-	stopSync() {
+	private stopSync() {
 		if (this.syncTimer) {
 			clearInterval(this.syncTimer)
 			this.syncTimer = null
 		}
 	}
 
-	sendCmd(cmd, dataBytes) {
+	sendCmd(cmd: number, dataBytes?: number[]) {
 		if (!this.udp) return
 		const host = String(this.config.host || '').trim()
 		if (!host) return
 		const pkt = buildPacket(cmd, dataBytes)
 		this.udp.send(pkt, DEVICE_UDP_PORT, host)
-		this.log('debug', `TX ${host}:${DEVICE_UDP_PORT} ${pkt.toString('hex')}`)
 	}
 
-	handleRxFrame(buf) {
+	private handleRxFrame(buf: Buffer) {
 		try {
 			if (!Buffer.isBuffer(buf) || buf.length < 10) return false
 			if (buf[0] !== 0x5a || buf[buf.length - 1] !== 0xdd) return false
@@ -322,7 +319,7 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 			let isStatusPacket = false
 
 			switch (cmd) {
-				case 0x12: { // PGM Source
+				case 0x12: {
 					if (payload.length >= 1) {
 						isStatusPacket = true
 						this.state.pgm = payload[0]
@@ -331,7 +328,7 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 					}
 					break
 				}
-				case 0x13: { // PVW Source
+				case 0x13: {
 					if (payload.length >= 1) {
 						isStatusPacket = true
 						this.state.pvw = payload[0]
@@ -340,7 +337,7 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 					}
 					break
 				}
-				case 0x11: { // Control (type, value)
+				case 0x11: {
 					if (payload.length >= 2) {
 						isStatusPacket = true
 						const type = payload[0]
@@ -355,7 +352,7 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 					}
 					break
 				}
-				case 0x14: { // Still status (1..16)
+				case 0x14: {
 					if (payload.length >= 16) {
 						isStatusPacket = true
 						this.state.still = Array.from(payload.slice(0, 16))
@@ -364,7 +361,7 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 					}
 					break
 				}
-				case 0x01: { // Audio setting (6 bytes)
+				case 0x01: {
 					if (payload.length >= 6) {
 						isStatusPacket = true
 						const ch = payload[0]
@@ -374,14 +371,14 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 						const mode = payload[5]
 
 						this.state.audio.ch[ch] = { sw, vol, delay, mode }
-						if (ch === 0) {							this.state.mute = sw === 0
+						if (ch === 0) {
+							this.state.mute = sw === 0
 							this.checkFeedbacks('mute_on')
-													}
+						}
 						this.checkFeedbacks('audio_on')
 					}
 					break
 				}
-
 				case 0x20: {
 					if (payload.length >= 6) {
 						isStatusPacket = true
@@ -401,7 +398,6 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 					}
 					break
 				}
-
 				case 0x24: {
 					if (payload.length >= 4) {
 						isStatusPacket = true
@@ -428,7 +424,6 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 					}
 					break
 				}
-
 				case 0x32: {
 					if (payload.length >= 4) {
 						isStatusPacket = true
@@ -442,28 +437,39 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 					}
 					break
 				}
-
 				default:
 					break
 			}
 
 			return isStatusPacket
-		} catch (e) {
+		} catch {
 			return false
 		}
 	}
 
-	setStillInput(inputIdx1to4, enable) {
+	setStillInput(inputIdx1to4: number, enable: boolean) {
 		const i = inputIdx1to4 - 1
 		if (i < 0 || i > 3) return
-		this.state.still[i] = enable ? 1 : 0
+
 		if (!Array.isArray(this.state.still) || this.state.still.length !== 16) {
-			this.state.still = Array.from({ length: 16 }, (_, i) => (this.state.still?.[i] ?? 0))
+			this.state.still = Array.from({ length: 16 }, (_, idx) => (this.state.still?.[idx] ?? 0))
 		}
+
+		this.state.still[i] = enable ? 1 : 0
 		this.sendCmd(0x14, this.state.still.slice(0, 16))
+		this.checkFeedbacks('still_input_on')
+		this.checkFeedbacks('pgm_still_is')
+		this.checkFeedbacks('pvw_still_is')
 	}
 
-	sendAudioSetting(chSelect) {
+	toggleStillInput(inputIdx1to4: number) {
+		const i = inputIdx1to4 - 1
+		if (i < 0 || i > 3) return
+		const cur = (this.state.still?.[i] ?? 0) === 1
+		this.setStillInput(inputIdx1to4, !cur)
+	}
+
+	sendAudioSetting(chSelect: number) {
 		const s = this.state.audio.ch[chSelect] || { sw: 1, vol: 60, delay: 0, mode: 0 }
 		const delay = clampInt(s.delay, 0, 500)
 		const dh = (delay >> 8) & 0xff
@@ -473,44 +479,48 @@ export class AVMatrixInstance extends InstanceBase<AVMatrixConfig> {
 		const vol = clampInt(s.vol, 0, 72)
 		const mode = s.mode & 0xff
 
-		if (chSelect === 0)		this.sendCmd(0x01, [chSelect & 0xff, sw, vol, dh, dl, mode])
+		this.sendCmd(0x01, [chSelect & 0xff, sw, vol, dh, dl, mode])
 	}
 
 	sendKeyStatus() {
 		const ks = this.state.keyStatus || [0, 0, 0, 0, 0, 0]
-		this.sendCmd(0x20, [
-			ks[0] & 0xff, ks[1] & 0xff, ks[2] & 0xff,
-			ks[3] & 0xff, ks[4] & 0xff, ks[5] & 0xff,
-		])
+		this.sendCmd(0x20, [ks[0] & 0xff, ks[1] & 0xff, ks[2] & 0xff, ks[3] & 0xff, ks[4] & 0xff, ks[5] & 0xff])
 	}
 
 	sendPip1() {
 		const p = this.state.pip1
-		this.sendCmd(0x24, [
-			clampInt(p.source, 0, 8),
-			clampInt(p.size, 0, 2),
-			clampInt(p.x, 0, 100),
-			clampInt(p.y, 0, 100),
-		])
+		this.sendCmd(0x24, [clampInt(p.source, 0, 8), clampInt(p.size, 0, 2), clampInt(p.x, 0, 100), clampInt(p.y, 0, 100)])
 	}
 
 	sendPip2() {
 		const p = this.state.pip2
-		this.sendCmd(0x25, [
-			clampInt(p.source, 0, 8),
-			clampInt(p.size, 0, 2),
-			clampInt(p.x, 0, 100),
-			clampInt(p.y, 0, 100),
-		])
+		this.sendCmd(0x25, [clampInt(p.source, 0, 8), clampInt(p.size, 0, 2), clampInt(p.x, 0, 100), clampInt(p.y, 0, 100)])
 	}
 
 	sendLogo() {
 		const l = this.state.logo
-		this.sendCmd(0x32, [
-			clampInt(l.x, 0, 100),
-			clampInt(l.y, 0, 100),
-			clampInt(l.size, 50, 150),
-			clampInt(l.opacity, 20, 100),
-		])
+		this.sendCmd(0x32, [clampInt(l.x, 0, 100), clampInt(l.y, 0, 100), clampInt(l.size, 50, 150), clampInt(l.opacity, 20, 100)])
+	}
+
+	private sendOutputPorts() {
+		const mv = this.state.outputPorts.mv & 0xff
+		const pgm = this.state.outputPorts.pgm & 0xff
+		const usb = this.state.outputPorts.usb & 0xff
+		this.sendCmd(0x80, [mv, pgm, usb])
+	}
+
+	setMvOut(src: number) {
+		this.state.outputPorts.mv = src
+		this.sendOutputPorts()
+	}
+
+	setPgmOutPort(src: number) {
+		this.state.outputPorts.pgm = src
+		this.sendOutputPorts()
+	}
+
+	setUsbOut(src: number) {
+		this.state.outputPorts.usb = src
+		this.sendOutputPorts()
 	}
 }

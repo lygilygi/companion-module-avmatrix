@@ -10,7 +10,9 @@
     "skipLibCheck": true,
     "types": [
       "node"
-    ]
+    ],
+    "declaration": true,
+    "declarationMap": false
   },
   "include": [
     "src/**/*"

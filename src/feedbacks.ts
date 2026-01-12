@@ -1,21 +1,28 @@
 import { combineRgb } from '@companion-module/base'
-import { AUDIO_CHANNELS, VIDEO_SOURCES, STILL_INPUTS, PIP_SOURCES } from './constants'
+import { AUDIO_CHANNELS, VIDEO_SOURCES, PIP_SOURCES } from './constants'
 import { isOnAir, isKey } from './utils'
 
 export function initFeedbacks(instance: any) {
 	const videoChoices = VIDEO_SOURCES.map((s) => ({ id: s.id, label: s.label }))
-	const stillChoices = STILL_INPUTS.map((s) => ({ id: s.id, label: s.label }))
 	const audioChoices = AUDIO_CHANNELS.map((c) => ({ id: c.id, label: c.label }))
 	const pipSrcChoices = PIP_SOURCES.map((s) => ({ id: s.id, label: s.label }))
 
-	const isStillActive = (idx: number) => (instance.state.still?.[idx - 1] ?? 0) === 1
+	const input14Choices = [
+		{ id: 1, label: 'IN 1' },
+		{ id: 2, label: 'IN 2' },
+		{ id: 3, label: 'IN 3' },
+		{ id: 4, label: 'IN 4' },
+	]
 
-	const isInputOnBus = (busVal: number, idx: number) => {
-		if (busVal !== idx) return false
-		if (idx >= 1 && idx <= STILL_INPUTS.length) {
-			return !isStillActive(idx)
-		}
-		return true
+	const isStillActive = (input1to4: number) => {
+		const i = input1to4 - 1
+		if (i < 0 || i > 3) return false
+		return (instance.state?.still?.[i] ?? 0) === 1
+	}
+
+	const isBusStillActive = (busVal: number) => {
+		if (busVal < 1 || busVal > 4) return false
+		return isStillActive(busVal)
 	}
 
 	instance.setFeedbackDefinitions({
@@ -26,9 +33,10 @@ export function initFeedbacks(instance: any) {
 			defaultStyle: { bgcolor: combineRgb(200, 0, 0), color: combineRgb(255, 255, 255) },
 			callback: (fb) => {
 				const src = Number(fb.options.source)
-				return isInputOnBus(instance.state.pgm, src)
+				return instance.state.pgm === src
 			},
 		},
+
 		pvw_is: {
 			type: 'boolean',
 			name: 'PVW is Source',
@@ -36,29 +44,35 @@ export function initFeedbacks(instance: any) {
 			defaultStyle: { bgcolor: combineRgb(0, 140, 0), color: combineRgb(255, 255, 255) },
 			callback: (fb) => {
 				const src = Number(fb.options.source)
-				return isInputOnBus(instance.state.pvw, src)
+				return instance.state.pvw === src
 			},
 		},
 
-		pgm_still_is: {
+		still_input_on: {
 			type: 'boolean',
-			name: 'PGM is STILL',
-			options: [{ id: 'still', type: 'dropdown', label: 'Still', default: 1, choices: stillChoices }],
+			name: 'STILL is ON for Input',
+			options: [{ id: 'input', type: 'dropdown', label: 'Input', default: 1, choices: input14Choices }],
 			defaultStyle: { bgcolor: combineRgb(255, 140, 0), color: combineRgb(0, 0, 0) },
 			callback: (fb) => {
-				const idx = Number(fb.options.still)
-				return instance.state.pgm === idx && isStillActive(idx)
+				const input = Number(fb.options.input)
+				return isStillActive(input)
 			},
 		},
-		pvw_still_is: {
+
+		pgm_still_on: {
 			type: 'boolean',
-			name: 'PVW is STILL',
-			options: [{ id: 'still', type: 'dropdown', label: 'Still', default: 1, choices: stillChoices }],
+			name: 'PGM STILL is ON (current input)',
+			options: [],
 			defaultStyle: { bgcolor: combineRgb(255, 140, 0), color: combineRgb(0, 0, 0) },
-			callback: (fb) => {
-				const idx = Number(fb.options.still)
-				return instance.state.pvw === idx && isStillActive(idx)
-			},
+			callback: () => isBusStillActive(instance.state.pgm),
+		},
+
+		pvw_still_on: {
+			type: 'boolean',
+			name: 'PVW STILL is ON (current input)',
+			options: [],
+			defaultStyle: { bgcolor: combineRgb(255, 140, 0), color: combineRgb(0, 0, 0) },
+			callback: () => isBusStillActive(instance.state.pvw),
 		},
 
 		ftb_on: {
@@ -102,6 +116,7 @@ export function initFeedbacks(instance: any) {
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
 			callback: () => isKey(instance.state.keyStatus[0]),
 		},
+
 		chroma_onair: {
 			type: 'boolean',
 			name: 'CHROMA is ON AIR',
@@ -116,6 +131,7 @@ export function initFeedbacks(instance: any) {
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
 			callback: () => isKey(instance.state.keyStatus[1]),
 		},
+
 		dsk_onair: {
 			type: 'boolean',
 			name: 'DSK is ON AIR',
@@ -151,6 +167,7 @@ export function initFeedbacks(instance: any) {
 				return m === 1 || m === 3
 			},
 		},
+
 		pip2_onair: {
 			type: 'boolean',
 			name: 'PIP2 is ON AIR',
@@ -171,6 +188,7 @@ export function initFeedbacks(instance: any) {
 				return m === 1 || m === 3
 			},
 		},
+
 		logo_onair: {
 			type: 'boolean',
 			name: 'LOGO is ON AIR',
@@ -197,14 +215,15 @@ export function initFeedbacks(instance: any) {
 			name: 'PIP1 Source is …',
 			options: [{ id: 'src', type: 'dropdown', label: 'Source', default: 4, choices: pipSrcChoices }],
 			defaultStyle: { bgcolor: combineRgb(40, 40, 40), color: combineRgb(255, 255, 255) },
-			callback: (fb) => instance.state.pip1.src === Number(fb.options.src),
+			callback: (fb) => instance.state.pip1.source === Number(fb.options.src),
 		},
+
 		pip2_source_is: {
 			type: 'boolean',
 			name: 'PIP2 Source is …',
 			options: [{ id: 'src', type: 'dropdown', label: 'Source', default: 5, choices: pipSrcChoices }],
 			defaultStyle: { bgcolor: combineRgb(40, 40, 40), color: combineRgb(255, 255, 255) },
-			callback: (fb) => instance.state.pip2.src === Number(fb.options.src),
+			callback: (fb) => instance.state.pip2.source === Number(fb.options.src),
 		},
 	})
 }
