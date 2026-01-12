@@ -13,7 +13,7 @@ AVMatrix HVS0403U
 
 ⸻
 
-Configuration
+**Configuration**
 
 Device IP
 
