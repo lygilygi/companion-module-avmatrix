@@ -3,8 +3,8 @@ Companion module for controlling AVMatrix video switchers via UDP, based directl
 
 ⸻
 
-Tested devices
-
+**Tested devices
+**
 The following devices have been tested and confirmed working:
 
 AVMatrix HVS0402U
@@ -29,7 +29,7 @@ When the connection is successful, the module status will change to:
 Connected (x.x.x.x)
 ⸻
 
-Functionality
+**Functionality**
 
 Video Inputs
 	•	PGM source selection
@@ -81,7 +81,7 @@ Routing is implemented as actions with dropdown selections.
 
 ⸻
 
-Presets
+**Presets**
 
 The module includes ready-to-use presets:
 	•	PGM / PVW input selection
@@ -92,7 +92,7 @@ The module includes ready-to-use presets:
 
 ⸻
 
-Feedback
+**Feedback**
 
 Available feedbacks:
 	•	PGM source
@@ -110,7 +110,7 @@ Color conventions:
 
 ⸻
 
-Logging
+**Logging**
 
 By default:
 	•	no RX/TX frame logging
@@ -123,9 +123,8 @@ Logging can be temporarily enabled for debugging but is not required for normal 
 
 ⸻
 
-
-Development Notes
-
+**Development Notes
+**
 The codebase is structured as follows:
 	•	instance.ts – UDP communication and state handling
 	•	actions.ts – Companion actions
