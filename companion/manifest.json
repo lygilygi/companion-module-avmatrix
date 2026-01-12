@@ -3,7 +3,7 @@
   "name": "AV MATRIX Video Switcher",
   "shortname": "AV MATRIX",
   "description": "AV MATRIX video switcher",
-  "version": "1.4.0",
+  "version": "1.1.0",
   "license": "MIT",
   "repository": "git+https://github.com/lygilygi/companion-module-avmatrix.git",
   "bugs": "https://github.com/lygilygi/companion-module-avmatrix/issues",
