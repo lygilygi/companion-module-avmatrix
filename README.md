@@ -3,8 +3,8 @@ Companion module for controlling AVMatrix video switchers via UDP, based directl
 
 ⸻
 
-**Tested devices
-**
+**Tested devices**
+
 The following devices have been tested and confirmed working:
 
 AVMatrix HVS0402U
