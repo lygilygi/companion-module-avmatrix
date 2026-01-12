@@ -1,45 +1,36 @@
-Changelog
+# Changelog
 
-[1.1.0] – 2026-01-12
+## v1.1.0
 
-Added
-	•	Full control of output routing:
-	•	Multiview Out
-	•	PGM Out
-	•	USB Out
-	•	Output destination selection via dropdown actions:
-	•	SDI 1
-	•	SDI 2
-	•	HDMI 3
-	•	HDMI 4
-	•	PGM
-	•	Clean PGM
-	•	PVW
-	•	Color Bar
-	•	Multiview
-	•	TX-only output control (no RX dependency, no feedback required)
+### Added
+- Output routing control (TX only):
+  - Multiview Out
+  - PGM Out
+  - USB Out
+- Output routing destinations:
+  - SDI 1
+  - SDI 2
+  - HDMI 3
+  - HDMI 4
+  - Program
+  - Clean Program
+  - Preview
+  - Color Bar
+  - Multiview
 
-Changed
-	•	Complete internal refactor of module structure
-	•	Rewritten instance, actions, feedbacks, and presets
-	•	Simplified and cleaned logging (status and error only by default)
-	•	Unified STILL logic to match real device behavior (input freeze, not image recall)
-	•	Presets reorganized for clarity and consistency
+### Changed
+- Complete internal refactor to current Companion module structure
+- Unified STILL handling based on input freeze state
+- RX logging reduced to prevent Companion log spam
+- Presets cleaned up and aligned with actual device behavior
 
-Fixed
-	•	STILL handling per input (toggle / off / all off)
-	•	MUTE action and feedback
-	•	PIP1, PIP2, LOGO actions and ON AIR feedbacks
-	•	LUMA, CHROMA, DSK actions and feedbacks
-	•	Missing presets for keyer and PIP controls
-	•	Excessive RX logging and Companion log spam
+### Fixed
+- Audio MUTE control and feedback
+- STILL handling per input
+- Chroma / Luma / DSK controls
+- PIP1 / PIP2 / Logo controls
+- ON AIR states and feedbacks for all keyers
 
-Removed
-	•	Legacy STILL 1–4 logic
-	•	Unused RX logging and debug noise
-	•	Deprecated assumptions about device RX behavior
-
-⸻
-
-[1.0.0]
-	•	Initial release
+### Tested on
+- AVMatrix 0402U
+- AVMatrix 0403U
