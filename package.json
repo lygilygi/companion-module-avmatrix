@@ -1,20 +1,49 @@
 {
-  "name": "companion-module-avmatrix",
-  "version": "1.1.0",
-  "description": "Bitfocus Companion module for AV Matrix 0402U/0403U",
-  "private": true,
-  "main": "dist/main.js",
-  "types": "dist/main.d.ts",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json -w",
-    "lint": "echo \"lint not configured\""
-  },
-  "dependencies": {
-    "@companion-module/base": "^1.14.1"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "@types/node": "^20.11.0"
-  }
+	"name": "companion-module-avmatrix",
+	"version": "1.1.0",
+	"description": "Bitfocus Companion module for AV MATRIX HVS-0402U / HVS-0403U video switchers",
+	"type": "module",
+	"main": "dist/main.js",
+	"packageManager": "yarn@4.9.1",
+	"engines": {
+		"node": "^22.20",
+		"yarn": "^4"
+	},
+	"scripts": {
+		"postinstall": "husky",
+		"format": "prettier -w .",
+		"package": "yarn build && companion-module-build",
+		"build": "rimraf dist && tsc -p tsconfig.build.json",
+		"dev": "tsc -p tsconfig.build.json --watch",
+		"lint:raw": "eslint",
+		"lint": "yarn lint:raw ."
+	},
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/lygilygi/companion-module-avmatrix.git"
+	},
+	"dependencies": {
+		"@companion-module/base": "~1.14.1"
+	},
+	"devDependencies": {
+		"@companion-module/tools": "^2.6.1",
+		"@types/node": "^22.19.3",
+		"eslint": "^9.39.2",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.1.0",
+		"prettier": "^3.5.3",
+		"rimraf": "^6.0.1",
+		"typescript": "~5.9.3",
+		"typescript-eslint": "^8.26.1"
+	},
+	"prettier": "@companion-module/tools/.prettierrc.json",
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"yarn lint:raw --fix"
+		]
+	}
 }

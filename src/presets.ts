@@ -1,8 +1,10 @@
 import { combineRgb } from '@companion-module/base'
-import { VIDEO_SOURCES } from './constants'
+import type { CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
+import { VIDEO_SOURCES } from './constants.js'
+import type { AVMatrixInstance } from './instance.js'
 
-export function initPresets(instance: any) {
-	const presets: any[] = []
+export function initPresets(instance: AVMatrixInstance): void {
+	const presets: CompanionButtonPresetDefinition[] = []
 
 	const redOn = { bgcolor: combineRgb(200, 0, 0), color: combineRgb(255, 255, 255) }
 	const redOff = { bgcolor: combineRgb(60, 0, 0), color: combineRgb(255, 255, 255) }
@@ -22,7 +24,7 @@ export function initPresets(instance: any) {
 	const purpleOn = { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) }
 	const purpleOff = { bgcolor: combineRgb(35, 0, 45), color: combineRgb(255, 255, 255) }
 
-	const inputSources = VIDEO_SOURCES.filter((s: any) => s.id >= 1 && s.id <= 4)
+	const inputSources = VIDEO_SOURCES.filter((s) => s.id >= 1 && s.id <= 4)
 
 	for (const s of inputSources) {
 		presets.push({
@@ -91,7 +93,13 @@ export function initPresets(instance: any) {
 
 	const modeButtons = [
 		{ cat: 'Keys / LUMA', label: 'LUMA', actionId: 'luma_mode_set', fbKey: 'luma_key', fbOnAir: 'luma_onair' },
-		{ cat: 'Keys / CHROMA', label: 'CHROMA', actionId: 'chroma_mode_set', fbKey: 'chroma_key', fbOnAir: 'chroma_onair' },
+		{
+			cat: 'Keys / CHROMA',
+			label: 'CHROMA',
+			actionId: 'chroma_mode_set',
+			fbKey: 'chroma_key',
+			fbOnAir: 'chroma_onair',
+		},
 		{ cat: 'Keys / DSK', label: 'DSK', actionId: 'dsk_mode_set', fbKey: 'dsk_key', fbOnAir: 'dsk_onair' },
 		{ cat: 'PIP / PIP1', label: 'PIP1', actionId: 'pip1_mode_set', fbKey: 'pip1_key', fbOnAir: 'pip1_onair' },
 		{ cat: 'PIP / PIP2', label: 'PIP2', actionId: 'pip2_mode_set', fbKey: 'pip2_key', fbOnAir: 'pip2_onair' },
@@ -99,15 +107,15 @@ export function initPresets(instance: any) {
 	]
 
 	const modes = [
-		{ name: 'OFF', mode: 0, fb: null as any },
-		{ name: 'KEY', mode: 1, fb: 'key' as any },
-		{ name: 'ON AIR', mode: 2, fb: 'onair' as any },
-		{ name: 'KEY+ON', mode: 3, fb: 'both' as any },
+		{ name: 'OFF', mode: 0, fb: null as string | null },
+		{ name: 'KEY', mode: 1, fb: 'key' },
+		{ name: 'ON AIR', mode: 2, fb: 'onair' },
+		{ name: 'KEY+ON', mode: 3, fb: 'both' },
 	]
 
 	for (const g of modeButtons) {
 		for (const m of modes) {
-			const fbList: any[] = []
+			const fbList: CompanionButtonPresetDefinition['feedbacks'] = []
 			if (m.fb === 'key') fbList.push({ feedbackId: g.fbKey, options: {}, style: purpleOn })
 			if (m.fb === 'onair') fbList.push({ feedbackId: g.fbOnAir, options: {}, style: purpleOn })
 			if (m.fb === 'both') {
@@ -128,7 +136,12 @@ export function initPresets(instance: any) {
 
 	const onAirToggles = [
 		{ category: 'Keys / LUMA', name: 'LUMA ON AIR TOGGLE', actionId: 'luma_onair_toggle', feedbackId: 'luma_onair' },
-		{ category: 'Keys / CHROMA', name: 'CHROMA ON AIR TOGGLE', actionId: 'chroma_onair_toggle', feedbackId: 'chroma_onair' },
+		{
+			category: 'Keys / CHROMA',
+			name: 'CHROMA ON AIR TOGGLE',
+			actionId: 'chroma_onair_toggle',
+			feedbackId: 'chroma_onair',
+		},
 		{ category: 'Keys / DSK', name: 'DSK ON AIR TOGGLE', actionId: 'dsk_onair_toggle', feedbackId: 'dsk_onair' },
 		{ category: 'PIP / PIP1', name: 'PIP1 ON AIR TOGGLE', actionId: 'pip1_onair_toggle', feedbackId: 'pip1_onair' },
 		{ category: 'PIP / PIP2', name: 'PIP2 ON AIR TOGGLE', actionId: 'pip2_onair_toggle', feedbackId: 'pip2_onair' },
@@ -146,5 +159,6 @@ export function initPresets(instance: any) {
 		})
 	}
 
-	instance.setPresetDefinitions(presets)
+	const presetDefs: CompanionPresetDefinitions = Object.fromEntries(presets.map((p, i) => [String(i), p]))
+	instance.setPresetDefinitions(presetDefs)
 }

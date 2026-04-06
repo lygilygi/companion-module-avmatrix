@@ -1,8 +1,8 @@
 import type { CompanionActionDefinitions } from '@companion-module/base'
-import { clampInt } from './utils'
-import type { AVMatrixInstance } from './instance'
+import { clampInt } from './utils.js'
+import type { AVMatrixInstance } from './instance.js'
 
-import { VIDEO_SOURCES, PIP_SOURCES, PIP_SIZES, AUDIO_CHANNELS, KEY_MODES, HP_SOURCES } from './constants'
+import { VIDEO_SOURCES, PIP_SOURCES, PIP_SIZES, AUDIO_CHANNELS, KEY_MODES, HP_SOURCES } from './constants.js'
 
 const OUTPUT_PORT_CHOICES = [
 	{ id: 0, label: 'SDI 1' },
@@ -16,7 +16,7 @@ const OUTPUT_PORT_CHOICES = [
 	{ id: 8, label: 'Multiview' },
 ]
 
-export function initActions(instance: AVMatrixInstance) {
+export function initActions(instance: AVMatrixInstance): void {
 	const videoChoices = VIDEO_SOURCES.map((s) => ({ id: s.id, label: s.label }))
 	const inputChoices = VIDEO_SOURCES.filter((s) => s.id >= 1 && s.id <= 4).map((s) => ({ id: s.id, label: s.label }))
 	const audioChoices = AUDIO_CHANNELS.map((c) => ({ id: c.id, label: c.label }))
@@ -34,7 +34,7 @@ export function initActions(instance: AVMatrixInstance) {
 				instance.sendCmd(0x12, [src])
 				instance.state.pgm = src
 				instance.checkFeedbacks('pgm_is')
-				instance.checkFeedbacks('pgm_still_is')
+				instance.checkFeedbacks('pgm_still_on')
 			},
 		},
 
@@ -46,7 +46,7 @@ export function initActions(instance: AVMatrixInstance) {
 				instance.sendCmd(0x13, [src])
 				instance.state.pvw = src
 				instance.checkFeedbacks('pvw_is')
-				instance.checkFeedbacks('pvw_still_is')
+				instance.checkFeedbacks('pvw_still_on')
 			},
 		},
 
@@ -169,7 +169,7 @@ export function initActions(instance: AVMatrixInstance) {
 			name: 'ON AIR: LUMA TOGGLE',
 			options: [],
 			callback: async () => {
-				const cur = instance.state.keyStatus[0] || 0
+				const cur = instance.state.keyStatus[0] ?? 0
 				instance.state.keyStatus[0] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('luma_onair')
@@ -180,7 +180,7 @@ export function initActions(instance: AVMatrixInstance) {
 			name: 'ON AIR: CHROMA TOGGLE',
 			options: [],
 			callback: async () => {
-				const cur = instance.state.keyStatus[1] || 0
+				const cur = instance.state.keyStatus[1] ?? 0
 				instance.state.keyStatus[1] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('chroma_onair')
@@ -191,7 +191,7 @@ export function initActions(instance: AVMatrixInstance) {
 			name: 'ON AIR: PIP1 TOGGLE',
 			options: [],
 			callback: async () => {
-				const cur = instance.state.keyStatus[2] || 0
+				const cur = instance.state.keyStatus[2] ?? 0
 				instance.state.keyStatus[2] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('pip1_onair')
@@ -202,7 +202,7 @@ export function initActions(instance: AVMatrixInstance) {
 			name: 'ON AIR: PIP2 TOGGLE',
 			options: [],
 			callback: async () => {
-				const cur = instance.state.keyStatus[3] || 0
+				const cur = instance.state.keyStatus[3] ?? 0
 				instance.state.keyStatus[3] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('pip2_onair')
@@ -213,7 +213,7 @@ export function initActions(instance: AVMatrixInstance) {
 			name: 'ON AIR: DSK TOGGLE',
 			options: [],
 			callback: async () => {
-				const cur = instance.state.keyStatus[4] || 0
+				const cur = instance.state.keyStatus[4] ?? 0
 				instance.state.keyStatus[4] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('dsk_onair')
@@ -224,7 +224,7 @@ export function initActions(instance: AVMatrixInstance) {
 			name: 'ON AIR: LOGO TOGGLE',
 			options: [],
 			callback: async () => {
-				const cur = instance.state.keyStatus[5] || 0
+				const cur = instance.state.keyStatus[5] ?? 0
 				instance.state.keyStatus[5] = cur === 2 || cur === 3 ? 0 : 2
 				instance.sendKeyStatus()
 				instance.checkFeedbacks('logo_onair')
@@ -274,7 +274,14 @@ export function initActions(instance: AVMatrixInstance) {
 				{ id: 'x', type: 'number', label: 'X (0–100)', min: 0, max: 100, default: instance.state.logo.x },
 				{ id: 'y', type: 'number', label: 'Y (0–100)', min: 0, max: 100, default: instance.state.logo.y },
 				{ id: 'size', type: 'number', label: 'Size (50–150)', min: 50, max: 150, default: instance.state.logo.size },
-				{ id: 'opacity', type: 'number', label: 'Opacity (20–100)', min: 20, max: 100, default: instance.state.logo.opacity },
+				{
+					id: 'opacity',
+					type: 'number',
+					label: 'Opacity (20–100)',
+					min: 20,
+					max: 100,
+					default: instance.state.logo.opacity,
+				},
 			],
 			callback: async (action) => {
 				instance.state.logo.x = clampInt(action.options.x, 0, 100)
@@ -289,7 +296,16 @@ export function initActions(instance: AVMatrixInstance) {
 			name: 'Audio: Set Channel (On/Off + Volume + Delay)',
 			options: [
 				{ id: 'ch', type: 'dropdown', label: 'Channel', default: 0, choices: audioChoices },
-				{ id: 'sw', type: 'dropdown', label: 'Switch', default: 1, choices: [{ id: 0, label: 'Off' }, { id: 1, label: 'On' }] },
+				{
+					id: 'sw',
+					type: 'dropdown',
+					label: 'Switch',
+					default: 1,
+					choices: [
+						{ id: 0, label: 'Off' },
+						{ id: 1, label: 'On' },
+					],
+				},
 				{ id: 'vol', type: 'number', label: 'Volume (0–72)', min: 0, max: 72, default: 60 },
 				{ id: 'delay', type: 'number', label: 'Delay ms (0–500)', min: 0, max: 500, default: 0 },
 			],
@@ -299,7 +315,7 @@ export function initActions(instance: AVMatrixInstance) {
 				const vol = clampInt(action.options.vol, 0, 72)
 				const delay = clampInt(action.options.delay, 0, 500)
 
-				const st = instance.state.audio.ch[ch] || { sw: 1, vol: 60, delay: 0, mode: 0 }
+				const st = instance.state.audio.ch[ch] ?? { sw: 1, vol: 60, delay: 0, mode: 0 }
 				st.sw = sw
 				st.vol = vol
 				st.delay = delay
@@ -349,24 +365,52 @@ export function initActions(instance: AVMatrixInstance) {
 			options: [{ id: 'src', type: 'dropdown', label: 'HeadPhones Source', default: 0, choices: hpChoices }],
 			callback: async (action) => {
 				const src = Number(action.options.src)
-				instance.state.audio.ch[7].mode = src
+				const ch = instance.state.audio.ch[7] ?? { sw: 1, vol: 60, delay: 0, mode: 0 }
+				ch.mode = src
+				instance.state.audio.ch[7] = ch
 				instance.sendAudioSetting(7)
 			},
 		},
 
 		audio_mic1_mode: {
 			name: 'Audio: Mic1 Mode',
-			options: [{ id: 'mode', type: 'dropdown', label: 'Mic Mode', default: 0, choices: [{ id: 0, label: 'Line' }, { id: 1, label: 'Mic' }] }],
+			options: [
+				{
+					id: 'mode',
+					type: 'dropdown',
+					label: 'Mic Mode',
+					default: 0,
+					choices: [
+						{ id: 0, label: 'Line' },
+						{ id: 1, label: 'Mic' },
+					],
+				},
+			],
 			callback: async (action) => {
-				instance.state.audio.ch[5].mode = Number(action.options.mode)
+				const ch = instance.state.audio.ch[5] ?? { sw: 1, vol: 60, delay: 0, mode: 0 }
+				ch.mode = Number(action.options.mode)
+				instance.state.audio.ch[5] = ch
 				instance.sendAudioSetting(5)
 			},
 		},
 		audio_mic2_mode: {
 			name: 'Audio: Mic2 Mode',
-			options: [{ id: 'mode', type: 'dropdown', label: 'Mic Mode', default: 0, choices: [{ id: 0, label: 'Line' }, { id: 1, label: 'Mic' }] }],
+			options: [
+				{
+					id: 'mode',
+					type: 'dropdown',
+					label: 'Mic Mode',
+					default: 0,
+					choices: [
+						{ id: 0, label: 'Line' },
+						{ id: 1, label: 'Mic' },
+					],
+				},
+			],
 			callback: async (action) => {
-				instance.state.audio.ch[6].mode = Number(action.options.mode)
+				const ch = instance.state.audio.ch[6] ?? { sw: 1, vol: 60, delay: 0, mode: 0 }
+				ch.mode = Number(action.options.mode)
+				instance.state.audio.ch[6] = ch
 				instance.sendAudioSetting(6)
 			},
 		},

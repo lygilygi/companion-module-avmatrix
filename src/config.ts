@@ -1,5 +1,5 @@
 import type { SomeCompanionConfigField } from '@companion-module/base'
-import { DEVICE_UDP_PORT, LOCAL_UDP_PORT } from './constants'
+import { DEVICE_UDP_PORT, LOCAL_UDP_PORT } from './constants.js'
 
 export interface AVMatrixConfig {
 	host: string
@@ -7,7 +7,6 @@ export interface AVMatrixConfig {
 
 export function getConfigFields(): SomeCompanionConfigField[] {
 	return [
-
 		{
 			type: 'static-text',
 			id: 'info',

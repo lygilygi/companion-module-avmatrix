@@ -10,8 +10,8 @@ The module supports common live-production workflows including program/preview s
 
 This module has been tested with the following AV MATRIX OEM devices:
 
-- AV MATRIX 0402U  
-- AV MATRIX 0403U  
+- AV MATRIX 0402U
+- AV MATRIX 0403U
 
 Other AV MATRIX OEM models using the same UDP protocol may also work.
 

@@ -1,8 +1,9 @@
 import { combineRgb } from '@companion-module/base'
-import { AUDIO_CHANNELS, VIDEO_SOURCES, PIP_SOURCES } from './constants'
-import { isOnAir, isKey } from './utils'
+import { AUDIO_CHANNELS, VIDEO_SOURCES, PIP_SOURCES } from './constants.js'
+import { isOnAir, isKey } from './utils.js'
+import type { AVMatrixInstance } from './instance.js'
 
-export function initFeedbacks(instance: any) {
+export function initFeedbacks(instance: AVMatrixInstance): void {
 	const videoChoices = VIDEO_SOURCES.map((s) => ({ id: s.id, label: s.label }))
 	const audioChoices = AUDIO_CHANNELS.map((c) => ({ id: c.id, label: c.label }))
 	const pipSrcChoices = PIP_SOURCES.map((s) => ({ id: s.id, label: s.label }))
@@ -14,13 +15,13 @@ export function initFeedbacks(instance: any) {
 		{ id: 4, label: 'IN 4' },
 	]
 
-	const isStillActive = (input1to4: number) => {
+	const isStillActive = (input1to4: number): boolean => {
 		const i = input1to4 - 1
 		if (i < 0 || i > 3) return false
 		return (instance.state?.still?.[i] ?? 0) === 1
 	}
 
-	const isBusStillActive = (busVal: number) => {
+	const isBusStillActive = (busVal: number): boolean => {
 		if (busVal < 1 || busVal > 4) return false
 		return isStillActive(busVal)
 	}
@@ -107,14 +108,14 @@ export function initFeedbacks(instance: any) {
 			name: 'LUMA is ON AIR',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => isOnAir(instance.state.keyStatus[0]),
+			callback: () => isOnAir(instance.state.keyStatus[0] ?? 0),
 		},
 		luma_key: {
 			type: 'boolean',
 			name: 'LUMA KEY enabled',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => isKey(instance.state.keyStatus[0]),
+			callback: () => isKey(instance.state.keyStatus[0] ?? 0),
 		},
 
 		chroma_onair: {
@@ -122,14 +123,14 @@ export function initFeedbacks(instance: any) {
 			name: 'CHROMA is ON AIR',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => isOnAir(instance.state.keyStatus[1]),
+			callback: () => isOnAir(instance.state.keyStatus[1] ?? 0),
 		},
 		chroma_key: {
 			type: 'boolean',
 			name: 'CHROMA KEY enabled',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => isKey(instance.state.keyStatus[1]),
+			callback: () => isKey(instance.state.keyStatus[1] ?? 0),
 		},
 
 		dsk_onair: {
@@ -137,14 +138,14 @@ export function initFeedbacks(instance: any) {
 			name: 'DSK is ON AIR',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => isOnAir(instance.state.keyStatus[4]),
+			callback: () => isOnAir(instance.state.keyStatus[4] ?? 0),
 		},
 		dsk_key: {
 			type: 'boolean',
 			name: 'DSK KEY enabled',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => isKey(instance.state.keyStatus[4]),
+			callback: () => isKey(instance.state.keyStatus[4] ?? 0),
 		},
 
 		pip1_onair: {
@@ -152,20 +153,14 @@ export function initFeedbacks(instance: any) {
 			name: 'PIP1 is ON AIR',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => {
-				const m = instance.state.keyStatus[2] || 0
-				return m === 2 || m === 3
-			},
+			callback: () => isOnAir(instance.state.keyStatus[2] ?? 0),
 		},
 		pip1_key: {
 			type: 'boolean',
 			name: 'PIP1 KEY enabled',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => {
-				const m = instance.state.keyStatus[2] || 0
-				return m === 1 || m === 3
-			},
+			callback: () => isKey(instance.state.keyStatus[2] ?? 0),
 		},
 
 		pip2_onair: {
@@ -173,20 +168,14 @@ export function initFeedbacks(instance: any) {
 			name: 'PIP2 is ON AIR',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => {
-				const m = instance.state.keyStatus[3] || 0
-				return m === 2 || m === 3
-			},
+			callback: () => isOnAir(instance.state.keyStatus[3] ?? 0),
 		},
 		pip2_key: {
 			type: 'boolean',
 			name: 'PIP2 KEY enabled',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => {
-				const m = instance.state.keyStatus[3] || 0
-				return m === 1 || m === 3
-			},
+			callback: () => isKey(instance.state.keyStatus[3] ?? 0),
 		},
 
 		logo_onair: {
@@ -194,20 +183,14 @@ export function initFeedbacks(instance: any) {
 			name: 'LOGO is ON AIR',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => {
-				const m = instance.state.keyStatus[5] || 0
-				return m === 2 || m === 3
-			},
+			callback: () => isOnAir(instance.state.keyStatus[5] ?? 0),
 		},
 		logo_key: {
 			type: 'boolean',
 			name: 'LOGO KEY enabled',
 			options: [],
 			defaultStyle: { bgcolor: combineRgb(160, 0, 200), color: combineRgb(255, 255, 255) },
-			callback: () => {
-				const m = instance.state.keyStatus[5] || 0
-				return m === 1 || m === 3
-			},
+			callback: () => isKey(instance.state.keyStatus[5] ?? 0),
 		},
 
 		pip1_source_is: {

@@ -2,7 +2,7 @@ name: Build Companion Module
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -13,6 +13,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Use Node 22
         uses: actions/setup-node@v4
         with:
@@ -20,7 +23,13 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
+
+      - name: Lint
+        run: yarn lint
 
       - name: Build
         run: yarn build
+
+      - name: Validate module
+        run: yarn companion-module-check
